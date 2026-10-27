@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neve — Gestion B2B</title>
+<style>
+  :root{
+    --bg:#FBF8F3; --panel:#FFFFFF; --ink:#2A2622; --muted:#8A8178;
+    --line:#EAE2D6; --cognac:#B4623A; --brass:#C29B4A; --soft:#F3ECE0;
+    --danger:#8C3B28; --success:#4B7F52;
+    --serif:"Lora",Georgia,"Times New Roman",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  h1,h2,h3{margin:0;font-family:var(--serif);font-weight:600;letter-spacing:-.01em}
+  button{font:inherit;cursor:pointer}
+  input,select{font:inherit;color:var(--ink)}
+
+  .app{display:grid;grid-template-columns:248px 1fr;min-height:100vh}
+  aside{background:var(--panel);border-right:1px solid var(--line);padding:26px 18px;display:flex;flex-direction:column;gap:4px}
+  .brand{padding:2px 8px 22px}
+  .brand .name{font-family:var(--serif);font-size:1.7rem;color:var(--cognac);line-height:1}
+  .brand .sub{color:var(--muted);font-size:.72rem;margin-top:6px;text-transform:uppercase;letter-spacing:.16em}
+  .navbtn{display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:none;border:1px solid transparent;color:var(--muted);padding:13px 14px;border-radius:11px;font-weight:600}
+  .navbtn:hover{background:var(--soft);color:var(--ink)}
+  .navbtn.active{background:var(--soft);color:var(--ink);border-color:var(--cognac)}
+  .navbtn:disabled{opacity:.5;cursor:default}
+  .navbtn .ic{width:9px;height:9px;border-radius:2px;background:currentColor;opacity:.6;flex:none}
+  .navbtn .soon{margin-left:auto;font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700}
+  aside .foot{margin-top:auto;color:var(--muted);font-size:.72rem;padding:12px 8px 0;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+
+  main{padding:32px 40px 90px;max-width:1120px;width:100%}
+  .head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap}
+  .head h1{font-size:1.9rem}
+  .head .subttl{color:var(--muted);margin:6px 0 0}
+
+  .btn{border:1px solid var(--cognac);background:var(--cognac);color:#fff;padding:11px 18px;border-radius:999px;font-weight:700}
+  .btn:hover{filter:brightness(.96)}
+  .btn.ghost{background:none;color:var(--cognac)}
+  .btn.ghost:hover{background:var(--soft)}
+  .btn.danger{background:none;border-color:var(--danger);color:var(--danger)}
+  .btn.danger:hover{background:#f6ecea}
+  .btn.sm{padding:8px 13px;font-size:.9rem}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-top:8px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px}
+  .card h3{font-size:1.2rem}
+  .card .ref{color:var(--muted);font-size:.85rem;margin-top:2px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+  .chip{background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:4px 11px;font-size:.82rem}
+  .kv{display:flex;flex-wrap:wrap;gap:16px;margin-top:10px;color:var(--muted);font-size:.86rem}
+  .kv b{color:var(--ink);font-weight:700}
+  .card .acts{display:flex;gap:8px;margin-top:16px}
+  .empty{color:var(--muted);background:var(--panel);border:1px dashed var(--line);border-radius:16px;padding:40px;text-align:center;margin-top:8px}
+
+  /* Form */
+  .form{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:26px;max-width:720px}
+  .field{display:flex;flex-direction:column;gap:6px;margin-bottom:18px}
+  .field label{font-weight:600;font-size:.92rem}
+  .field .hint{color:var(--muted);font-size:.8rem;font-weight:400}
+  .field input[type=text],.field input[type=number]{border:1px solid var(--line);border-radius:10px;padding:11px 12px;background:var(--bg);width:100%}
+  .field input:focus{outline:none;border-color:var(--cognac)}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:620px){.row2{grid-template-columns:1fr}.app{grid-template-columns:minmax(0,1fr)}main{padding:24px 16px 80px}}
+
+  .tiers{display:flex;flex-direction:column;gap:8px}
+  .tier-row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:center}
+  .tier-row input{border:1px solid var(--line);border-radius:9px;padding:9px 10px;background:var(--bg);width:100%}
+  .tier-row .x{border:1px solid var(--line);background:none;color:var(--muted);border-radius:9px;padding:8px 11px;line-height:1}
+  .tier-row .x:hover{border-color:var(--danger);color:var(--danger)}
+  .tier-head{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;font-size:.78rem;color:var(--muted);font-weight:600;padding:0 2px}
+  .add-link{align-self:flex-start;background:none;border:none;color:var(--cognac);font-weight:700;padding:4px 0;font-size:.9rem}
+
+  .colors{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .colors .chip{display:flex;align-items:center;gap:8px}
+  .colors .chip button{background:none;border:none;color:var(--muted);font-weight:700;padding:0;line-height:1}
+  .colors .chip button:hover{color:var(--danger)}
+  .addcolor{display:flex;gap:8px;margin-top:10px}
+  .addcolor input{border:1px solid var(--line);border-radius:10px;padding:9px 11px;background:var(--bg);flex:1}
+
+  .form .foot-acts{display:flex;gap:10px;margin-top:10px}
+  .btn:disabled{opacity:.5;cursor:default;filter:none}
+
+  /* Devis */
+  .form.wide{max-width:960px}
+  .field select,.field input[type=date]{border:1px solid var(--line);border-radius:10px;padding:11px 12px;background:var(--bg);width:100%}
+  .field select:focus,.field input[type=date]:focus{outline:none;border-color:var(--cognac)}
+  .lines{display:flex;flex-direction:column;gap:14px}
+  .line{border:1px solid var(--line);border-radius:14px;padding:16px;background:var(--bg)}
+  .line .field{margin-bottom:12px}
+  .line .field select{background:var(--panel)}
+  .sizes{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+  .sizes label{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:.78rem;color:var(--muted);font-weight:600}
+  .sizes input{border:1px solid var(--line);border-radius:9px;padding:8px 4px;background:var(--panel);width:100%;text-align:center}
+  .sizes input:focus{outline:none;border-color:var(--cognac)}
+  @media(max-width:620px){.sizes{grid-template-columns:repeat(4,1fr)}}
+  .line-foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;font-size:.88rem;color:var(--muted)}
+  .line-foot b{color:var(--ink)}
+  .warn{color:var(--danger);font-size:.82rem;margin-top:6px}
+  .warn:empty{display:none}
+  .totals{display:flex;flex-wrap:wrap;gap:22px;justify-content:flex-end;margin:18px 0 6px;padding-top:14px;border-top:1px solid var(--line)}
+  .totals b{font-family:var(--serif);font-size:1.15rem}
+  .card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+  .card .acts{flex-wrap:wrap}
+  .badge{flex:none;border-radius:999px;padding:3px 10px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+  .badge.en_attente{background:#F6EEDC;color:#8A6A22}
+  .badge.signe{background:#E6F0E7;color:var(--success)}
+  .badge.refuse{background:#F3E4E0;color:var(--danger)}
+  .dlines{margin:12px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px;font-size:.88rem}
+  .dlines .sz{color:var(--muted)}
+  .note{color:var(--muted);font-size:.84rem;margin:14px 0 0}
+
+  /* Commandes */
+  .stack{display:flex;flex-direction:column;gap:16px;margin-top:8px}
+  .picks{display:flex;flex-direction:column;gap:8px}
+  .field .pick{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--bg);cursor:pointer;font-weight:400}
+  .pick input{margin-top:4px;accent-color:var(--cognac)}
+  .pick .sz,.recap .sz{color:var(--muted);font-size:.82rem}
+  .recap-wrap{overflow-x:auto}
+  .recap{width:100%;border-collapse:collapse;font-size:.9rem;margin-top:12px}
+  .recap th{text-align:left;color:var(--muted);font-weight:600;font-size:.78rem;padding:6px 8px;border-bottom:1px solid var(--line)}
+  .recap td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+  .recap .num{text-align:right;white-space:nowrap}
+
+  /* Auth */
+  .authgate{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:24px}
+  .authbox{width:100%;max-width:360px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:34px 30px;display:flex;flex-direction:column;gap:14px;box-shadow:0 24px 60px -30px rgba(42,38,34,.35)}
+  .authbox .authbrand{font-family:var(--serif);font-size:2rem;color:var(--cognac);line-height:1}
+  .authbox .authsub{color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.16em;margin-bottom:8px}
+  .authbox label{display:flex;flex-direction:column;gap:6px;font-size:.85rem;font-weight:600}
+  .authbox input{border:1px solid var(--line);border-radius:10px;padding:11px 12px;background:var(--bg)}
+  .authbox input:focus{outline:none;border-color:var(--cognac)}
+  .authbox button[type=submit]{margin-top:6px;background:var(--cognac);color:#fff;border:none;border-radius:999px;padding:12px 18px;font-weight:700}
+  .autherr{color:var(--danger);font-size:.85rem;min-height:1em}
+  .logoutbtn{background:none;border:1px solid var(--line);color:var(--muted);border-radius:9px;padding:8px 10px;font-weight:600;width:100%}
+  .logoutbtn:hover{border-color:var(--cognac);color:var(--ink)}
+
+  /* Modal + toast */
+  .modal{position:fixed;inset:0;background:rgba(42,38,34,.4);display:none;align-items:center;justify-content:center;z-index:900;padding:20px}
+  .modal.open{display:flex}
+  .sheet{background:var(--panel);border-radius:16px;padding:26px;max-width:420px;width:100%}
+  .sheet h3{font-size:1.2rem;margin-bottom:8px}
+  .sheet .msg{color:var(--muted);margin-bottom:18px}
+  .sheet .actions{display:flex;gap:10px;justify-content:flex-end}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:12px 20px;border-radius:999px;opacity:0;transition:.25s;z-index:950;font-weight:600;font-size:.9rem}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="authgate" id="authgate">
+  <form class="authbox" id="authform">
+    <div class="authbrand">Neve</div>
+    <div class="authsub">Gestion B2B</div>
+    <label>Email<input type="email" id="authemail" required autocomplete="username"></label>
+    <label>Mot de passe<input type="password" id="authpass" required autocomplete="current-password"></label>
+    <button type="submit" id="authbtn">Se connecter</button>
+    <div class="autherr" id="autherr"></div>
+  </form>
+</div>
+
+<div class="app">
+  <aside>
+    <div class="brand"><div class="name">Neve</div><div class="sub">Gestion B2B</div></div>
+    <button class="navbtn active" data-view="modeles"><span class="ic"></span>Modèles</button>
+    <button class="navbtn" data-view="devis"><span class="ic"></span>Devis</button>
+    <button class="navbtn" data-view="commandes"><span class="ic"></span>Commandes</button>
+    <div class="foot">
+      <button class="logoutbtn" id="logout">Se déconnecter</button>
+      Revente B2B · à la commande
+    </div>
+  </aside>
+  <main id="main"></main>
+</div>
+
+<div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+  "use strict";
+  var SB_URL="https://yqkjiqakrohwjaepnqil.supabase.co";
+  var SB_ANON="sb_publishable_EhTIXa6eFpFy5zxXGhC9Rw_Yg7jQRgB";
+  var sb=window.supabase.createClient(SB_URL,SB_ANON);
+
+  var POINTURES=[35,36,37,38,39,40,41,42];
+  var models=[], clients=[], devis=[], commandes=[];
+  var state={view:"modeles",editing:null,dirty:false};
+  var STATUTS={en_attente:"En attente",signe:"Signé",refuse:"Refusé"};
+
+  var main=document.getElementById("main");
+  var toastEl=document.getElementById("toast");
+  function toast(msg){toastEl.textContent=msg;toastEl.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(function(){toastEl.classList.remove("show");},2400);}
+  function uid(p){return (p||"x")+Math.random().toString(36).slice(2,9);}
+  function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+  function fmt(n){return (Math.round((Number(n)||0)*100)/100).toFixed(2).replace(".",",")+" €";}
+  function today(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+  function fmtDate(s){var p=String(s||"").split("-");return p.length===3?p[2]+"/"+p[1]+"/"+p[0]:String(s||"");}
+
+  /* ---------------- Supabase : modèles ---------------- */
+  function loadModeles(){
+    return sb.from("neve_modeles").select("*").then(function(r){
+      if(r.error)return {error:r.error.message};
+      return {data:r.data.map(function(x){return {
+        id:x.id, nom:x.nom||"", reference:x.reference||"",
+        couleurs:x.couleurs||[], prix_achat:x.prix_achat||[], prix_gros:x.prix_gros||[],
+        prix_conseille:Number(x.prix_conseille)||0
+      };})};
+    });
+  }
+  var syncing=false,resync=false;
+  function saveModeles(){
+    if(syncing){resync=true;return;}
+    syncing=true;
+    var rows=models.map(function(m){return {
+      id:m.id, nom:m.nom, reference:m.reference, couleurs:m.couleurs,
+      prix_achat:m.prix_achat, prix_gros:m.prix_gros, prix_conseille:m.prix_conseille
+    };});
+    var ids=models.map(function(m){return m.id;});
+    var up = rows.length ? sb.from("neve_modeles").upsert(rows) : Promise.resolve({});
+    Promise.resolve(up).then(function(r){
+      if(r&&r.error)throw new Error("enregistrement : "+r.error.message);
+      var del=sb.from("neve_modeles").delete();
+      del = ids.length ? del.not("id","in","("+ids.join(",")+")") : del.not("id","is",null);
+      return del;
+    }).then(function(r){
+      if(r&&r.error)throw new Error("suppression : "+r.error.message);
+      syncing=false; if(resync){resync=false;saveModeles();}
+    }).catch(function(e){ syncing=false; toast("Sauvegarde échouée : "+(e.message||e)); });
+  }
+
+  /* ---------------- Supabase : revendeurs + devis ---------------- */
+  function loadClients(){
+    return sb.from("neve_clients").select("*").then(function(r){
+      if(r.error)return {error:r.error.message};
+      return {data:r.data.map(function(x){return {id:x.id, nom:x.nom||"", contact:x.contact||""};})};
+    });
+  }
+  function loadDevis(){
+    return sb.from("neve_devis").select("*").then(function(r){
+      if(r.error)return {error:r.error.message};
+      return {data:r.data.map(function(x){return {
+        id:x.id, client_id:x.client_id||"", date:x.date||"", statut:x.statut||"en_attente", lignes:x.lignes||[]
+      };})};
+    });
+  }
+  // un devis s'enregistre seul (pas de resynchro de toute la liste) ; un nouveau revendeur est créé avant, à cause de la clé étrangère
+  function saveDevis(d,newClient){
+    var first = newClient ? sb.from("neve_clients").upsert({id:newClient.id, nom:newClient.nom, contact:newClient.contact}) : Promise.resolve({});
+    return Promise.resolve(first).then(function(r){
+      if(r&&r.error)throw new Error("revendeur : "+r.error.message);
+      return sb.from("neve_devis").upsert({id:d.id, client_id:d.client_id||null, date:d.date||null, statut:d.statut, lignes:d.lignes});
+    }).then(function(r){
+      if(r&&r.error)throw new Error("devis : "+r.error.message);
+    });
+  }
+  function deleteDevis(id){
+    return sb.from("neve_devis").delete().eq("id",id).then(function(r){ if(r&&r.error)throw new Error(r.error.message); });
+  }
+
+  /* ---------------- Supabase : commandes fournisseur ---------------- */
+  function loadCommandes(){
+    return sb.from("neve_commandes").select("*").then(function(r){
+      if(r.error)return {error:r.error.message};
+      return {data:r.data.map(function(x){return {
+        id:x.id, date:x.date||"", fournisseur:x.fournisseur||"", devis_ids:x.devis_ids||[], lignes:x.lignes||[]
+      };})};
+    });
+  }
+  function saveCommande(c){
+    return sb.from("neve_commandes").upsert({id:c.id, date:c.date||null, fournisseur:c.fournisseur, devis_ids:c.devis_ids, lignes:c.lignes})
+      .then(function(r){ if(r&&r.error)throw new Error(r.error.message); });
+  }
+  function deleteCommande(id){
+    return sb.from("neve_commandes").delete().eq("id",id).then(function(r){ if(r&&r.error)throw new Error(r.error.message); });
+  }
+
+  function boot(){
+    Promise.all([loadModeles(),loadClients(),loadDevis(),loadCommandes()]).then(function(res){
+      var err=res.filter(function(x){return x.error;})[0];
+      if(err){alert("Chargement impossible : "+err.error+"\n\nAs-tu bien exécuté schema-b2b.sql dans Supabase ?");return;}
+      models=res[0].data; clients=res[1].data; devis=res[2].data; commandes=res[3].data; render();
+    });
+  }
+
+  /* ---------------- Navigation ---------------- */
+  document.querySelectorAll(".navbtn").forEach(function(b){
+    b.addEventListener("click",function(){
+      if(b.disabled)return;
+      leaveForm(function(){
+        state.view=b.dataset.view; state.editing=null;
+        document.querySelectorAll(".navbtn").forEach(function(x){x.classList.remove("active");});
+        b.classList.add("active");
+        render();
+      });
+    });
+  });
+
+  /* ---------------- Rendu ---------------- */
+  function render(){
+    if(state.view==="modeles"){ if(state.editing) renderForm(); else renderList(); return; }
+    if(state.view==="devis"){ if(state.editing) renderDevisForm(); else renderDevisList(); return; }
+    if(state.view==="commandes"){ if(state.editing) renderCommandeForm(); else renderCommandesList(); return; }
+    main.innerHTML='<div class="head"><div><h1>Bientôt</h1></div></div><div class="empty">Cet écran arrive à la prochaine marche.</div>';
+  }
+
+  function tierSummary(t){ return (t&&t.length)? t.length+" palier"+(t.length>1?"s":"") : "à définir"; }
+
+  function renderList(){
+    var cards = models.map(function(m){
+      var couleurs = (m.couleurs||[]).map(function(c){return '<span class="chip">'+esc(c)+'</span>';}).join("") || '<span class="chip" style="opacity:.6">aucun coloris</span>';
+      return ''
+        +'<div class="card">'
+        +'  <h3>'+esc(m.nom||"(sans nom)")+'</h3>'
+        +(m.reference?'  <div class="ref">Réf. '+esc(m.reference)+'</div>':'')
+        +'  <div class="chips">'+couleurs+'</div>'
+        +'  <div class="kv">'
+        +'    <span>Achat fournisseur : <b>'+tierSummary(m.prix_achat)+'</b></span>'
+        +'    <span>Prix de gros : <b>'+tierSummary(m.prix_gros)+'</b></span>'
+        +'    <span>Prix conseillé : <b>'+fmt(m.prix_conseille)+'</b></span>'
+        +'  </div>'
+        +'  <div class="acts">'
+        +'    <button class="btn ghost sm" data-edit="'+m.id+'">Modifier</button>'
+        +'    <button class="btn danger sm" data-del="'+m.id+'">Supprimer</button>'
+        +'  </div>'
+        +'</div>';
+    }).join("");
+    main.innerHTML = ''
+      +'<div class="head"><div><h1>Modèles</h1><p class="subttl">Ton catalogue et les prix (achat, gros, conseillé).</p></div>'
+      +'<button class="btn" id="add">+ Ajouter un modèle</button></div>'
+      +(models.length? '<div class="cards">'+cards+'</div>' : '<div class="empty">Aucun modèle pour l\'instant. Clique « Ajouter un modèle » pour commencer.</div>');
+    document.getElementById("add").onclick=function(){ state.editing={id:uid("m"),nom:"",reference:"",couleurs:[],prix_achat:[],prix_gros:[],prix_conseille:0,_new:true}; state.dirty=false; render(); };
+    main.querySelectorAll("[data-edit]").forEach(function(b){ b.onclick=function(){ var m=models.find(function(x){return x.id===b.dataset.edit;}); state.editing=JSON.parse(JSON.stringify(m)); state.dirty=false; render(); }; });
+    main.querySelectorAll("[data-del]").forEach(function(b){ b.onclick=function(){ var m=models.find(function(x){return x.id===b.dataset.del;}); var nDevis=devis.filter(function(d){return (d.lignes||[]).some(function(l){return l.modeleId===m.id;});}).length; confirmDel("Supprimer ce modèle ?","« "+(m.nom||"sans nom")+" » sera retiré du catalogue."+(nDevis?" Il figure dans "+nDevis+" devis, qui garderont leurs prix.":""),function(){ models=models.filter(function(x){return x.id!==m.id;}); saveModeles(); render(); toast("Modèle supprimé"); }); }; });
+  }
+
+  function tierRowsHtml(tiers){
+    return (tiers&&tiers.length? tiers : []).map(function(t){
+      return '<div class="tier-row"><input type="number" min="1" class="t-q" value="'+(t.q!=null?t.q:"")+'" placeholder="quantité min"><input type="number" min="0" step="0.01" class="t-p" value="'+(t.p!=null?t.p:"")+'" placeholder="prix / paire"><button type="button" class="x" title="Retirer">✕</button></div>';
+    }).join("");
+  }
+
+  function renderForm(){
+    var m=state.editing;
+    var colorsHtml = (m.couleurs||[]).map(function(c){ return '<span class="chip">'+esc(c)+'<button type="button" data-rmcolor="'+esc(c)+'">✕</button></span>'; }).join("");
+    main.innerHTML = ''
+      +'<div class="head"><div><h1>'+(m._new?"Nouveau modèle":"Modifier le modèle")+'</h1></div></div>'
+      +'<div class="form" id="mform">'
+      +'  <div class="row2">'
+      +'    <div class="field"><label>Nom du modèle</label><input type="text" id="f-nom" value="'+esc(m.nom)+'" placeholder="ex : Colibri"></div>'
+      +'    <div class="field"><label>Référence <span class="hint">(facultatif)</span></label><input type="text" id="f-ref" value="'+esc(m.reference)+'" placeholder="ex : COL-01"></div>'
+      +'  </div>'
+      +'  <div class="field"><label>Coloris disponibles <span class="hint">(n\'influe pas le prix)</span></label>'
+      +'    <div class="colors" id="f-colors">'+colorsHtml+'</div>'
+      +'    <div class="addcolor"><input type="text" id="f-newcolor" placeholder="ajouter un coloris et Entrée"><button type="button" class="btn ghost sm" id="f-addcolor">Ajouter</button></div>'
+      +'  </div>'
+      +'  <div class="field"><label>Prix d\'achat fournisseur <span class="hint">(dégressif, par paliers de quantité)</span></label>'
+      +'    <div class="tier-head"><span>Quantité à partir de</span><span>Prix unitaire</span><span></span></div>'
+      +'    <div class="tiers" id="f-achat">'+tierRowsHtml(m.prix_achat)+'</div>'
+      +'    <button type="button" class="add-link" data-addtier="f-achat">+ Ajouter un palier</button>'
+      +'  </div>'
+      +'  <div class="field"><label>Prix de gros client <span class="hint">(dégressif, ce que le revendeur te paie)</span></label>'
+      +'    <div class="tier-head"><span>Quantité à partir de</span><span>Prix unitaire</span><span></span></div>'
+      +'    <div class="tiers" id="f-gros">'+tierRowsHtml(m.prix_gros)+'</div>'
+      +'    <button type="button" class="add-link" data-addtier="f-gros">+ Ajouter un palier</button>'
+      +'  </div>'
+      +'  <div class="field" style="max-width:260px"><label>Prix de vente conseillé <span class="hint">(fixe, prix revendeur → client final)</span></label><input type="number" min="0" step="0.01" id="f-conseille" value="'+(m.prix_conseille||0)+'"></div>'
+      +'  <div class="foot-acts"><button class="btn" id="f-save">Enregistrer</button><button class="btn ghost" id="f-cancel">Annuler</button></div>'
+      +'</div>';
+
+    // coloris : ajout / retrait
+    function addColor(){
+      var inp=document.getElementById("f-newcolor"); var v=(inp.value||"").trim();
+      if(!v)return;
+      if(m.couleurs.indexOf(v)===-1) m.couleurs.push(v);
+      inp.value=""; renderForm();
+    }
+    document.getElementById("f-addcolor").onclick=function(){ captureForm(); addColor(); };
+    document.getElementById("f-newcolor").addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); captureForm(); addColor(); } });
+    main.querySelectorAll("[data-rmcolor]").forEach(function(b){ b.onclick=function(){ captureForm(); m.couleurs=m.couleurs.filter(function(c){return c!==b.dataset.rmcolor;}); renderForm(); }; });
+
+    // paliers : ajout / retrait
+    main.querySelectorAll("[data-addtier]").forEach(function(b){ b.onclick=function(){ captureForm(); var key=b.dataset.addtier==="f-achat"?"prix_achat":"prix_gros"; m[key].push({q:"",p:""}); renderForm(); }; });
+    main.querySelectorAll(".tier-row .x").forEach(function(x){ x.onclick=function(){ captureForm(); var rows=Array.prototype.slice.call(x.closest(".tiers").children); var idx=rows.indexOf(x.closest(".tier-row")); var key=x.closest(".tiers").id==="f-achat"?"prix_achat":"prix_gros"; m[key].splice(idx,1); renderForm(); }; });
+
+    document.getElementById("mform").addEventListener("input",function(){ state.dirty=true; });
+    document.getElementById("f-cancel").onclick=function(){ leaveForm(function(){ state.editing=null; render(); }); };
+    document.getElementById("f-save").onclick=function(){
+      captureForm();
+      if(!m.nom.trim()){ toast("Donne un nom au modèle"); return; }
+      // nettoyage des paliers vides + tri par quantité croissante
+      ["prix_achat","prix_gros"].forEach(function(key){
+        m[key]=(m[key]||[]).filter(function(t){return t.q!==""&&t.q!=null&&!isNaN(t.q);}).map(function(t){return {q:Number(t.q),p:Number(t.p)||0};}).sort(function(a,b){return a.q-b.q;});
+      });
+      m.prix_conseille=Number(m.prix_conseille)||0;
+      delete m._new;
+      var existing=models.find(function(x){return x.id===m.id;});
+      if(existing){ Object.assign(existing,m); } else { models.push(m); }
+      saveModeles();
+      state.dirty=false; state.editing=null; render(); toast("Modèle enregistré");
+    };
+  }
+
+  // lit les valeurs des champs du formulaire dans l'objet en cours (avant un re-render) ; n'est appelé que sur une modification ou à l'enregistrement
+  function captureForm(){
+    var m=state.editing; if(!m)return;
+    state.dirty=true;
+    var nom=document.getElementById("f-nom"); if(nom)m.nom=nom.value;
+    var ref=document.getElementById("f-ref"); if(ref)m.reference=ref.value;
+    var cons=document.getElementById("f-conseille"); if(cons)m.prix_conseille=cons.value;
+    ["f-achat","f-gros"].forEach(function(id){
+      var cont=document.getElementById(id); if(!cont)return;
+      var key=id==="f-achat"?"prix_achat":"prix_gros";
+      m[key]=Array.prototype.slice.call(cont.querySelectorAll(".tier-row")).map(function(r){
+        return {q:r.querySelector(".t-q").value, p:r.querySelector(".t-p").value};
+      });
+    });
+  }
+
+  /* ---------------- Devis ---------------- */
+  function modelById(id){ return models.find(function(m){return m.id===id;}); }
+  function clientById(id){ return clients.find(function(c){return c.id===id;}); }
+  function byNom(a,b){ return (a.nom||"").localeCompare(b.nom||"","fr"); }
+  function lineQty(l){ return (l.tailles||[]).reduce(function(s,t){return s+(Number(t.qte)||0);},0); }
+  function sizesText(l){ return (l.tailles||[]).filter(function(t){return t.qte>0;}).map(function(t){return t.pointure+"×"+t.qte;}).join(", "); }
+  function newLine(){ return {modeleId:"",couleur:"",tailles:[],prixGrosUnitaire:0,prixConseille:0}; }
+
+  // prix du plus haut palier atteint ; sous le premier palier, on prend le premier et on prévient
+  function tierPrice(tiers,qty){
+    var t=(tiers||[]).slice().sort(function(a,b){return a.q-b.q;});
+    if(!t.length)return {p:0,missing:true};
+    var hit=null; t.forEach(function(x){ if(qty>=x.q)hit=x; });
+    return hit ? {p:Number(hit.p)||0} : {p:Number(t[0].p)||0,below:t[0].q};
+  }
+  // le palier de gros se lit sur le total de paires du modèle dans le devis, toutes couleurs confondues
+  function priceLines(lignes){
+    var perModel={};
+    lignes.forEach(function(l){ perModel[l.modeleId]=(perModel[l.modeleId]||0)+lineQty(l); });
+    lignes.forEach(function(l){
+      l._warn="";
+      if(!l.modeleId){ l.prixGrosUnitaire=0; l.prixConseille=0; return; }
+      var m=modelById(l.modeleId);
+      if(!m){ l._warn="Modèle retiré du catalogue : le prix enregistré est conservé."; return; }
+      var tp=tierPrice(m.prix_gros,perModel[l.modeleId]);
+      l.prixGrosUnitaire=tp.p; l.prixConseille=Number(m.prix_conseille)||0;
+      if(tp.missing) l._warn="Prix de gros à définir dans l'écran Modèles.";
+      else if(tp.below) l._warn="Sous le premier palier de gros (à partir de "+tp.below+" paires de ce modèle).";
+    });
+  }
+  function devisTotals(lignes){
+    return (lignes||[]).reduce(function(s,l){ var q=lineQty(l); s.paires+=q; s.montant+=q*(Number(l.prixGrosUnitaire)||0); return s; },{paires:0,montant:0});
+  }
+
+  function renderDevisList(){
+    var list=devis.slice().sort(function(a,b){return String(b.date).localeCompare(String(a.date));});
+    var cards=list.map(function(d){
+      var c=clientById(d.client_id), tot=devisTotals(d.lignes);
+      var lines=(d.lignes||[]).map(function(l){
+        var m=modelById(l.modeleId), q=lineQty(l);
+        return '<li><b>'+esc(m?m.nom:"(modèle retiré)")+'</b>'+(l.couleur?' · '+esc(l.couleur):'')+' · '+q+' paire'+(q>1?'s':'')+' <span class="sz">('+esc(sizesText(l))+')</span></li>';
+      }).join("");
+      // un devis déjà commandé est verrouillé : la commande a figé ses lignes
+      var cmd=commandeOfDevis(d.id);
+      var acts = d.statut==="en_attente"
+        ? '<button class="btn ghost sm" data-dedit="'+d.id+'">Modifier</button>'
+          +'<button class="btn ghost sm" data-dstat="signe" data-id="'+d.id+'">Marquer signé</button>'
+          +'<button class="btn ghost sm" data-dstat="refuse" data-id="'+d.id+'">Marquer refusé</button>'
+        : '<button class="btn ghost sm" data-dstat="en_attente" data-id="'+d.id+'">Remettre en attente</button>';
+      return ''
+        +'<div class="card">'
+        +'  <div class="card-top"><div><h3>'+esc(c?c.nom:"(revendeur inconnu)")+'</h3><div class="ref">Devis du '+esc(fmtDate(d.date))+'</div></div>'
+        +'  <span class="badge '+esc(d.statut)+'">'+esc(STATUTS[d.statut]||d.statut)+'</span></div>'
+        +'  <ul class="dlines">'+lines+'</ul>'
+        +'  <div class="kv"><span>Paires : <b>'+tot.paires+'</b></span><span>Total au prix de gros : <b>'+fmt(tot.montant)+'</b></span></div>'
+        +(cmd
+          ? '  <p class="note">Inclus dans la commande '+(cmd.fournisseur?'« '+esc(cmd.fournisseur)+' » ':'')+'du '+esc(fmtDate(cmd.date))+'. Pour le modifier, supprime d\'abord cette commande.</p>'
+          : '  <div class="acts">'+acts+'<button class="btn danger sm" data-ddel="'+d.id+'">Supprimer</button></div>')
+        +'</div>';
+    }).join("");
+    main.innerHTML = ''
+      +'<div class="head"><div><h1>Devis</h1><p class="subttl">Tes devis aux revendeurs, au prix de gros.</p></div>'
+      +'<button class="btn" id="dadd"'+(models.length?'':' disabled')+'>+ Nouveau devis</button></div>'
+      +(!models.length ? '<div class="empty">Ajoute d\'abord un modèle dans l\'écran Modèles : un devis se compose de modèles.</div>'
+        : devis.length ? '<div class="cards">'+cards+'</div>'
+        : '<div class="empty">Aucun devis pour l\'instant. Clique « Nouveau devis » pour commencer.</div>');
+    document.getElementById("dadd").onclick=function(){
+      state.editing={id:uid("d"),client_id:clients.length?"":"__new",date:today(),statut:"en_attente",lignes:[newLine()],_new:true,_newClient:{nom:"",contact:""}};
+      state.dirty=false; render();
+    };
+    main.querySelectorAll("[data-dedit]").forEach(function(b){ b.onclick=function(){
+      var d=devis.find(function(x){return x.id===b.dataset.dedit;});
+      state.editing=JSON.parse(JSON.stringify(d)); state.editing._newClient={nom:"",contact:""};
+      if(!state.editing.lignes.length) state.editing.lignes.push(newLine());
+      state.dirty=false; render();
+    }; });
+    main.querySelectorAll("[data-dstat]").forEach(function(b){ b.onclick=function(){ setStatut(b.dataset.id,b.dataset.dstat); }; });
+    main.querySelectorAll("[data-ddel]").forEach(function(b){ b.onclick=function(){
+      var d=devis.find(function(x){return x.id===b.dataset.ddel;}), c=clientById(d.client_id);
+      confirmDel("Supprimer ce devis ?","Le devis "+(c?"de "+c.nom+" ":"")+"du "+fmtDate(d.date)+" sera supprimé.",function(){
+        deleteDevis(d.id).then(function(){ devis=devis.filter(function(x){return x.id!==d.id;}); render(); toast("Devis supprimé"); })
+          .catch(function(e){ toast("Suppression échouée : "+(e.message||e)); });
+      });
+    }; });
+  }
+
+  function setStatut(id,statut){
+    var d=devis.find(function(x){return x.id===id;}); if(!d)return;
+    var out=Object.assign({},d,{statut:statut});
+    saveDevis(out,null).then(function(){ Object.assign(d,out); render(); toast("Devis : "+STATUTS[statut].toLowerCase()); })
+      .catch(function(e){ toast("Mise à jour échouée : "+(e.message||e)); });
+  }
+
+  function renderDevisForm(){
+    var d=state.editing;
+    var mods=models.slice().sort(byNom);
+    var clientOpts='<option value="">Choisir un revendeur</option>'
+      +clients.slice().sort(byNom).map(function(c){return '<option value="'+esc(c.id)+'"'+(c.id===d.client_id?' selected':'')+'>'+esc(c.nom||"(sans nom)")+'</option>';}).join("")
+      +'<option value="__new"'+(d.client_id==="__new"?' selected':'')+'>+ Nouveau revendeur</option>';
+    var newClientHtml = d.client_id!=="__new" ? '' : ''
+      +'  <div class="row2">'
+      +'    <div class="field"><label>Nom du revendeur</label><input type="text" id="d-cnom" value="'+esc(d._newClient.nom)+'" placeholder="ex : Boutique Lumière"></div>'
+      +'    <div class="field"><label>Contact <span class="hint">(email ou téléphone, facultatif)</span></label><input type="text" id="d-ccontact" value="'+esc(d._newClient.contact)+'"></div>'
+      +'  </div>';
+    var linesHtml=d.lignes.map(function(l,i){
+      var m=modelById(l.modeleId);
+      var modOpts='<option value="">Choisir un modèle</option>'
+        +mods.map(function(x){return '<option value="'+esc(x.id)+'"'+(x.id===l.modeleId?' selected':'')+'>'+esc(x.nom)+(x.reference?' ('+esc(x.reference)+')':'')+'</option>';}).join("")
+        +(l.modeleId&&!m?'<option value="'+esc(l.modeleId)+'" selected>(modèle retiré)</option>':'');
+      var cols=(m&&m.couleurs)||[];
+      if(l.couleur&&cols.indexOf(l.couleur)===-1) cols=cols.concat([l.couleur]);
+      var colOpts = cols.length
+        ? cols.map(function(c){return '<option value="'+esc(c)+'"'+(c===l.couleur?' selected':'')+'>'+esc(c)+'</option>';}).join("")
+        : '<option value="">(sans coloris)</option>';
+      var qmap={}; (l.tailles||[]).forEach(function(t){qmap[t.pointure]=t.qte;});
+      var sizes=POINTURES.map(function(p){
+        return '<label>'+p+'<input type="number" min="0" step="1" inputmode="numeric" class="q-in" data-p="'+p+'" value="'+(qmap[p]||"")+'" placeholder="0"></label>';
+      }).join("");
+      return ''
+        +'<div class="line" data-i="'+i+'">'
+        +'  <div class="row2">'
+        +'    <div class="field"><label>Modèle</label><select class="l-mod">'+modOpts+'</select></div>'
+        +'    <div class="field"><label>Coloris</label><select class="l-col"'+(cols.length?'':' disabled')+'>'+colOpts+'</select></div>'
+        +'  </div>'
+        +'  <div class="field"><label>Paires par pointure</label><div class="sizes">'+sizes+'</div></div>'
+        +'  <div class="line-foot"><span id="l-sum-'+i+'"></span><button type="button" class="btn danger sm l-rm">Retirer la ligne</button></div>'
+        +'  <div class="warn" id="l-warn-'+i+'"></div>'
+        +'</div>';
+    }).join("");
+    main.innerHTML = ''
+      +'<div class="head"><div><h1>'+(d._new?"Nouveau devis":"Modifier le devis")+'</h1>'
+      +'<p class="subttl">Le prix de gros suit les paliers du modèle, selon le total de paires de ce modèle dans le devis.</p></div></div>'
+      +'<div class="form wide" id="dform">'
+      +'  <div class="row2">'
+      +'    <div class="field"><label>Revendeur</label><select id="d-client">'+clientOpts+'</select></div>'
+      +'    <div class="field"><label>Date</label><input type="date" id="d-date" value="'+esc(d.date)+'"></div>'
+      +'  </div>'
+      +newClientHtml
+      +'  <div class="field"><label>Lignes du devis</label><div class="lines">'+linesHtml+'</div>'
+      +'    <button type="button" class="add-link" id="d-addline">+ Ajouter une ligne</button></div>'
+      +'  <div class="totals"><span>Paires : <b id="d-tpaires">0</b></span><span>Total au prix de gros : <b id="d-tmontant">'+fmt(0)+'</b></span></div>'
+      +'  <div class="foot-acts"><button class="btn" id="d-save">Enregistrer</button><button class="btn ghost" id="d-cancel">Annuler</button></div>'
+      +'</div>';
+    refreshDevisTotals();
+
+    // toute saisie marque le devis comme modifié ; les quantités recalculent sans re-rendu (le curseur reste en place)
+    var form=document.getElementById("dform");
+    form.addEventListener("input",function(e){
+      state.dirty=true;
+      if(e.target.classList.contains("q-in")){ captureDevisForm(); refreshDevisTotals(); }
+    });
+    document.getElementById("d-client").onchange=function(){ captureDevisForm(); state.dirty=true; renderDevisForm(); };
+    main.querySelectorAll(".l-mod").forEach(function(s){ s.onchange=function(){
+      captureDevisForm();
+      var l=d.lignes[+s.closest(".line").dataset.i], m=modelById(l.modeleId);
+      l.couleur=(m&&m.couleurs&&m.couleurs[0])||"";
+      state.dirty=true; renderDevisForm();
+    }; });
+    main.querySelectorAll(".l-rm").forEach(function(b){ b.onclick=function(){ captureDevisForm(); d.lignes.splice(+b.closest(".line").dataset.i,1); if(!d.lignes.length)d.lignes.push(newLine()); state.dirty=true; renderDevisForm(); }; });
+    document.getElementById("d-addline").onclick=function(){ captureDevisForm(); d.lignes.push(newLine()); state.dirty=true; renderDevisForm(); };
+    document.getElementById("d-cancel").onclick=function(){ leaveForm(function(){ state.editing=null; render(); }); };
+    document.getElementById("d-save").onclick=function(){
+      captureDevisForm();
+      var isNew=d.client_id==="__new";
+      if(isNew&&!d._newClient.nom.trim()){ toast("Donne un nom au revendeur"); return; }
+      if(!isNew&&!d.client_id){ toast("Choisis un revendeur"); return; }
+      var kept=d.lignes.filter(function(l){return l.modeleId&&lineQty(l)>0;});
+      if(!kept.length){ toast("Ajoute au moins une paire"); return; }
+      priceLines(kept);
+      // id du nouveau revendeur fixé une fois : un nouvel essai après échec ne crée pas de doublon
+      var newClient=null;
+      if(isNew){ d._newClient.id=d._newClient.id||uid("c"); newClient={id:d._newClient.id,nom:d._newClient.nom.trim(),contact:d._newClient.contact.trim()}; }
+      var out={id:d.id, client_id:newClient?newClient.id:d.client_id, date:d.date||today(), statut:d.statut,
+        lignes:kept.map(function(l){return {modeleId:l.modeleId,couleur:l.couleur,tailles:l.tailles,prixGrosUnitaire:l.prixGrosUnitaire,prixConseille:l.prixConseille};})};
+      var btn=this; btn.disabled=true; btn.textContent="Enregistrement…";
+      saveDevis(out,newClient).then(function(){
+        if(newClient&&!clientById(newClient.id)) clients.push(newClient);
+        var i=devis.findIndex(function(x){return x.id===out.id;});
+        if(i>=0) devis[i]=out; else devis.push(out);
+        state.dirty=false; state.editing=null; render(); toast("Devis enregistré");
+      }).catch(function(e){ btn.disabled=false; btn.textContent="Enregistrer"; toast("Enregistrement échoué : "+(e.message||e)); });
+    };
+  }
+
+  function refreshDevisTotals(){
+    var d=state.editing; if(!d)return;
+    priceLines(d.lignes);
+    d.lignes.forEach(function(l,i){
+      var q=lineQty(l), sum=document.getElementById("l-sum-"+i), warn=document.getElementById("l-warn-"+i);
+      if(sum) sum.innerHTML = !l.modeleId ? 'Choisis un modèle.'
+        : '<b>'+q+'</b> paire'+(q>1?'s':'')+' · gros <b>'+fmt(l.prixGrosUnitaire)+'</b> / paire · sous-total <b>'+fmt(q*l.prixGrosUnitaire)+'</b> · conseillé '+fmt(l.prixConseille);
+      if(warn) warn.textContent=l._warn||"";
+    });
+    var t=devisTotals(d.lignes);
+    document.getElementById("d-tpaires").textContent=t.paires;
+    document.getElementById("d-tmontant").textContent=fmt(t.montant);
+  }
+
+  // lit les champs du devis dans l'objet en cours (avant un re-rendu ou un calcul)
+  function captureDevisForm(){
+    var d=state.editing; if(!d)return;
+    var cs=document.getElementById("d-client"); if(cs)d.client_id=cs.value;
+    var dt=document.getElementById("d-date"); if(dt)d.date=dt.value;
+    var cn=document.getElementById("d-cnom"); if(cn)d._newClient.nom=cn.value;
+    var cc=document.getElementById("d-ccontact"); if(cc)d._newClient.contact=cc.value;
+    main.querySelectorAll(".line").forEach(function(el){
+      var l=d.lignes[+el.dataset.i]; if(!l)return;
+      l.modeleId=el.querySelector(".l-mod").value;
+      l.couleur=el.querySelector(".l-col").value;
+      l.tailles=Array.prototype.slice.call(el.querySelectorAll(".q-in")).map(function(inp){
+        return {pointure:Number(inp.dataset.p),qte:Math.max(0,Math.floor(Number(inp.value)||0))};
+      }).filter(function(t){return t.qte>0;});
+    });
+  }
+
+  /* ---------------- Commandes fournisseur ---------------- */
+  function commandeOfDevis(id){ return commandes.find(function(c){return (c.devis_ids||[]).indexOf(id)!==-1;}); }
+  function devisDispo(){ return devis.filter(function(d){return d.statut==="signe"&&!commandeOfDevis(d.id);}); }
+  function selectedDevis(ids){ return ids.map(function(id){return devis.find(function(d){return d.id===id;});}).filter(Boolean); }
+
+  // regroupe les lignes des devis par modèle × coloris ; le palier d'achat se lit sur le total de paires du modèle dans la commande
+  // prix de gros d'une ligne regroupée = moyenne pondérée des devis (les paliers de gros peuvent différer d'un devis à l'autre)
+  function aggregateDevis(list){
+    var byKey={}, keys=[];
+    list.forEach(function(d){ (d.lignes||[]).forEach(function(l){
+      var k=l.modeleId+"|"+l.couleur;
+      if(!byKey[k]){ byKey[k]={modeleId:l.modeleId,couleur:l.couleur,sizes:{},qte:0,gros:0,prixConseille:l.prixConseille}; keys.push(k); }
+      var a=byKey[k], q=lineQty(l);
+      (l.tailles||[]).forEach(function(t){ a.sizes[t.pointure]=(a.sizes[t.pointure]||0)+t.qte; });
+      a.qte+=q; a.gros+=q*(Number(l.prixGrosUnitaire)||0);
+    }); });
+    var perModel={};
+    keys.forEach(function(k){ var a=byKey[k]; perModel[a.modeleId]=(perModel[a.modeleId]||0)+a.qte; });
+    return keys.map(function(k){
+      var a=byKey[k], m=modelById(a.modeleId), tp=m?tierPrice(m.prix_achat,perModel[a.modeleId]):{p:0};
+      var tailles=Object.keys(a.sizes).map(Number).sort(function(x,y){return x-y;}).map(function(p){return {pointure:p,qte:a.sizes[p]};});
+      return {modeleId:a.modeleId, couleur:a.couleur, tailles:tailles, qteModele:perModel[a.modeleId],
+        prixAchatUnitaire:tp.p, prixGrosUnitaire:a.qte?a.gros/a.qte:0, prixConseille:a.prixConseille,
+        _warn: !m ? "Modèle retiré du catalogue : prix d'achat inconnu."
+          : tp.missing ? "Prix d'achat à définir dans l'écran Modèles."
+          : tp.below ? "Sous le premier palier d'achat (à partir de "+tp.below+" paires de ce modèle)." : ""};
+    }).sort(function(x,y){
+      var mx=modelById(x.modeleId), my=modelById(y.modeleId);
+      return ((mx&&mx.nom)||"").localeCompare((my&&my.nom)||"","fr") || String(x.couleur).localeCompare(String(y.couleur),"fr");
+    });
+  }
+  function commandeTotals(lignes){
+    return lignes.reduce(function(s,l){ var q=lineQty(l); s.paires+=q; s.achat+=q*(Number(l.prixAchatUnitaire)||0); s.gros+=q*(Number(l.prixGrosUnitaire)||0); return s; },{paires:0,achat:0,gros:0});
+  }
+
+  function recapHtml(lignes){
+    if(!lignes.length) return '<div class="empty">Coche au moins un devis signé.</div>';
+    var rows=lignes.map(function(l){
+      var m=modelById(l.modeleId), q=lineQty(l);
+      return '<tr><td><b>'+esc(m?m.nom:"(modèle retiré)")+'</b>'+(l.couleur?' · '+esc(l.couleur):'')
+        +'<div class="sz">'+esc(sizesText(l))+'</div>'+(l._warn?'<div class="warn">'+esc(l._warn)+'</div>':'')+'</td>'
+        +'<td class="num">'+q+'</td><td class="num">'+fmt(l.prixAchatUnitaire)+'</td><td class="num">'+fmt(q*l.prixAchatUnitaire)+'</td></tr>';
+    }).join("");
+    var t=commandeTotals(lignes), marge=t.gros-t.achat;
+    return '<div class="recap-wrap"><table class="recap"><thead><tr><th>Modèle · coloris</th><th class="num">Paires</th><th class="num">Achat / paire</th><th class="num">Coût</th></tr></thead>'
+      +'<tbody>'+rows+'</tbody></table></div>'
+      +'<div class="totals"><span>Paires : <b>'+t.paires+'</b></span><span>Coût d\'achat : <b>'+fmt(t.achat)+'</b></span>'
+      +'<span>Ventes au prix de gros : <b>'+fmt(t.gros)+'</b></span>'
+      +'<span>Marge brute : <b>'+fmt(marge)+'</b>'+(t.gros?' ('+Math.round(marge/t.gros*100)+' %)':'')+'</span></div>';
+  }
+
+  function renderCommandesList(){
+    var list=commandes.slice().sort(function(a,b){return String(b.date).localeCompare(String(a.date));});
+    var nDispo=devisDispo().length;
+    var cards=list.map(function(c){
+      var revendeurs=(c.devis_ids||[]).map(function(id){ var d=devis.find(function(x){return x.id===id;}), cl=d&&clientById(d.client_id); return cl?cl.nom:"(devis supprimé)"; });
+      var zero=(c.lignes||[]).some(function(l){return !Number(l.prixAchatUnitaire);});
+      return ''
+        +'<div class="card">'
+        +'  <div class="card-top"><div><h3>'+esc(c.fournisseur||"(fournisseur non précisé)")+'</h3>'
+        +'  <div class="ref">Commande du '+esc(fmtDate(c.date))+' · '+(c.devis_ids||[]).length+' devis : '+esc(revendeurs.join(", "))+'</div></div></div>'
+        +recapHtml(c.lignes||[])
+        +(zero?'<p class="warn">Certains prix d\'achat sont à 0 : la marge est surestimée.</p>':'')
+        +'  <div class="acts"><button class="btn danger sm" data-cdel="'+c.id+'">Supprimer</button></div>'
+        +'</div>';
+    }).join("");
+    main.innerHTML = ''
+      +'<div class="head"><div><h1>Commandes</h1><p class="subttl">Tes commandes au fournisseur, qui regroupent les devis signés.</p></div>'
+      +'<button class="btn" id="cadd"'+(nDispo?'':' disabled')+'>+ Nouvelle commande</button></div>'
+      +(list.length ? '<div class="stack">'+cards+'</div>'
+        : nDispo ? '<div class="empty">Aucune commande pour l\'instant. '+nDispo+' devis signé'+(nDispo>1?'s attendent':' attend')+' une commande.</div>'
+        : '<div class="empty">Aucun devis signé à commander. Marque d\'abord un devis comme signé dans l\'écran Devis.</div>');
+    document.getElementById("cadd").onclick=function(){
+      var last=list[0];
+      state.editing={id:uid("k"),fournisseur:last?last.fournisseur:"",date:today(),devis_ids:[]};
+      state.dirty=false; render();
+    };
+    main.querySelectorAll("[data-cdel]").forEach(function(b){ b.onclick=function(){
+      var c=commandes.find(function(x){return x.id===b.dataset.cdel;}), n=(c.devis_ids||[]).length;
+      confirmDel("Supprimer cette commande ?","Les "+n+" devis qu'elle regroupe redeviendront disponibles pour une autre commande.",function(){
+        deleteCommande(c.id).then(function(){ commandes=commandes.filter(function(x){return x.id!==c.id;}); render(); toast("Commande supprimée"); })
+          .catch(function(e){ toast("Suppression échouée : "+(e.message||e)); });
+      });
+    }; });
+  }
+
+  function renderCommandeForm(){
+    var c=state.editing;
+    var dispo=devisDispo().sort(function(a,b){return String(a.date).localeCompare(String(b.date));});
+    var fournisseurs=commandes.map(function(x){return x.fournisseur;}).filter(function(f,i,a){return f&&a.indexOf(f)===i;});
+    var picks=dispo.map(function(d){
+      var cl=clientById(d.client_id), t=devisTotals(d.lignes);
+      return '<label class="pick"><input type="checkbox" class="c-dv" value="'+esc(d.id)+'"'+(c.devis_ids.indexOf(d.id)!==-1?' checked':'')+'>'
+        +'<span><b>'+esc(cl?cl.nom:"(revendeur inconnu)")+'</b> · devis du '+esc(fmtDate(d.date))
+        +'<br><span class="sz">'+t.paires+' paire'+(t.paires>1?'s':'')+' · '+fmt(t.montant)+' au prix de gros</span></span></label>';
+    }).join("");
+    main.innerHTML = ''
+      +'<div class="head"><div><h1>Nouvelle commande</h1>'
+      +'<p class="subttl">Coche les devis signés à regrouper. Le prix d\'achat suit les paliers du modèle, selon le total de paires de ce modèle dans la commande.</p></div></div>'
+      +'<div class="form wide" id="cform">'
+      +'  <div class="row2">'
+      +'    <div class="field"><label>Fournisseur</label><input type="text" id="c-four" list="c-fours" value="'+esc(c.fournisseur)+'" placeholder="nom du fournisseur">'
+      +'      <datalist id="c-fours">'+fournisseurs.map(function(f){return '<option value="'+esc(f)+'">';}).join("")+'</datalist></div>'
+      +'    <div class="field"><label>Date</label><input type="date" id="c-date" value="'+esc(c.date)+'"></div>'
+      +'  </div>'
+      +'  <div class="field"><label>Devis signés à inclure</label><div class="picks">'+(picks||'<div class="empty">Aucun devis signé disponible.</div>')+'</div></div>'
+      +'  <div class="field"><label>À commander</label><div id="c-recap"></div></div>'
+      +'  <div class="foot-acts"><button class="btn" id="c-save">Enregistrer la commande</button><button class="btn ghost" id="c-cancel">Annuler</button></div>'
+      +'</div>';
+    refreshCommandeRecap();
+
+    var form=document.getElementById("cform");
+    form.addEventListener("input",function(){ state.dirty=true; });
+    form.addEventListener("change",function(e){ if(e.target.classList.contains("c-dv")){ captureCommandeForm(); refreshCommandeRecap(); } });
+    document.getElementById("c-cancel").onclick=function(){ leaveForm(function(){ state.editing=null; render(); }); };
+    document.getElementById("c-save").onclick=function(){
+      captureCommandeForm();
+      if(!c.fournisseur.trim()){ toast("Indique le fournisseur"); return; }
+      if(!c.devis_ids.length){ toast("Coche au moins un devis signé"); return; }
+      // récap figé à l'enregistrement : les devis et les prix du catalogue peuvent ensuite changer sans toucher la commande
+      var out={id:c.id, date:c.date||today(), fournisseur:c.fournisseur.trim(), devis_ids:c.devis_ids.slice(),
+        lignes:aggregateDevis(selectedDevis(c.devis_ids)).map(function(l){ return {modeleId:l.modeleId,couleur:l.couleur,tailles:l.tailles,qteModele:l.qteModele,
+          prixAchatUnitaire:l.prixAchatUnitaire,prixGrosUnitaire:l.prixGrosUnitaire,prixConseille:l.prixConseille}; })};
+      var btn=this; btn.disabled=true; btn.textContent="Enregistrement…";
+      saveCommande(out).then(function(){
+        commandes.push(out); state.dirty=false; state.editing=null; render(); toast("Commande enregistrée");
+      }).catch(function(e){ btn.disabled=false; btn.textContent="Enregistrer la commande"; toast("Enregistrement échoué : "+(e.message||e)); });
+    };
+  }
+
+  function refreshCommandeRecap(){
+    var c=state.editing, el=document.getElementById("c-recap"); if(!c||!el)return;
+    el.innerHTML=recapHtml(aggregateDevis(selectedDevis(c.devis_ids)));
+  }
+
+  function captureCommandeForm(){
+    var c=state.editing; if(!c)return;
+    var f=document.getElementById("c-four"); if(f)c.fournisseur=f.value;
+    var dt=document.getElementById("c-date"); if(dt)c.date=dt.value;
+    c.devis_ids=Array.prototype.slice.call(main.querySelectorAll(".c-dv:checked")).map(function(x){return x.value;});
+  }
+
+  /* ---------------- Modal / toast ---------------- */
+  var modalEl=document.getElementById("modal"),sheetEl=document.getElementById("sheet");
+  function openModal(html){sheetEl.innerHTML=html;modalEl.classList.add("open");}
+  function closeModal(){modalEl.classList.remove("open");}
+  modalEl.addEventListener("click",function(e){if(e.target===modalEl)closeModal();});
+  function confirmBox(title,msg,okLabel,onOk){
+    openModal('<h3>'+esc(title)+'</h3><p class="msg">'+esc(msg)+'</p><div class="actions"><button class="btn ghost" id="cno">Annuler</button><button class="btn danger" id="cyes">'+esc(okLabel)+'</button></div>');
+    document.getElementById("cno").onclick=closeModal;
+    document.getElementById("cyes").onclick=function(){closeModal();onOk();};
+  }
+  function confirmDel(title,msg,onOk){ confirmBox(title,msg,"Supprimer",onOk); }
+
+  // garde-fou : quitter un formulaire modifié (modèle, devis, commande) demande confirmation
+  function leaveForm(go){
+    if(!state.dirty){go();return;}
+    confirmBox("Quitter sans enregistrer ?","Les modifications en cours seront perdues.","Quitter",function(){state.dirty=false;go();});
+  }
+  window.addEventListener("beforeunload",function(e){ if(state.dirty){e.preventDefault();e.returnValue="";} });
+
+  /* ---------------- Auth ---------------- */
+  var authgate=document.getElementById("authgate");
+  var authform=document.getElementById("authform");
+  var autherr=document.getElementById("autherr");
+  function showAuth(){authgate.style.display="flex";}
+  function hideAuth(){authgate.style.display="none";}
+  authform.addEventListener("submit",function(e){
+    e.preventDefault();autherr.textContent="";
+    var email=document.getElementById("authemail").value.trim();
+    var pass=document.getElementById("authpass").value;
+    var btn=document.getElementById("authbtn");
+    btn.disabled=true;btn.textContent="Connexion…";
+    sb.auth.signInWithPassword({email:email,password:pass}).then(function(res){
+      btn.disabled=false;btn.textContent="Se connecter";
+      if(res.error){autherr.textContent="Email ou mot de passe incorrect.";return;}
+      hideAuth();boot();
+    });
+  });
+  document.getElementById("logout").onclick=function(){sb.auth.signOut().then(function(){location.reload();});};
+  sb.auth.getSession().then(function(res){
+    if(res.data&&res.data.session){hideAuth();boot();}else{showAuth();}
+  });
+})();
+</script>
+</body>
+</html>
